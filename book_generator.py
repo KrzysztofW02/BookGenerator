@@ -1,4 +1,6 @@
 import random
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 def load_data(file_path):
     with open(file_path, 'r') as file:
@@ -64,12 +66,40 @@ def save_to_file(content, file_name="generated_story.txt"):
         file.write(content)
     print(f"Story saved to file: {file_name}")
 
+def save_to_pdf(content, file_name="generated_story.pdf"):
+    pdf = canvas.Canvas(file_name, pagesize=letter)
+    width, height = letter
+    pdf.setFont("Times-Roman", 12)
+    y_position = height - 50
+    for line in content.split("\n"):
+        pdf.drawString(50, y_position, line)
+        y_position -= 15
+        if y_position < 50:
+            pdf.showPage()
+            pdf.setFont("Times-Roman", 12)
+            y_position = height - 50
+    pdf.save()
+    print(f"Story saved as PDF: {file_name}")
+
 def main():
     print("Welcome to the Interactive Story Generator!")
     story = generate_plot()
     print("\nGenerated Story:")
     print(story)
-    save_to_file(story)
+
+    while True:
+        save_option = input("Do you want to save the story as (1) TXT, (2) PDF, or (3) Both? ").strip()
+        if save_option in {"1", "2", "3"}:
+            break
+        print("Invalid choice. Please enter 1, 2, or 3.")
+
+    if save_option == "1":
+        save_to_file(story)
+    elif save_option == "2":
+        save_to_pdf(story)
+    elif save_option == "3":
+        save_to_file(story)
+        save_to_pdf(story)
 
 if __name__ == "__main__":
     main()
