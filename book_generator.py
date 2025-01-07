@@ -6,24 +6,35 @@ def load_data(file_path):
     with open(file_path, 'r') as file:
         return [line.strip() for line in file]
 
-def get_user_choice(options, prompt):
+def get_user_choice(options, prompt, allow_done=False):
     while True:
         try:
             print(prompt)
             for i, option in enumerate(options, start=1):
                 print(f"{i}. {option}")
-            choice = int(input("Enter the number of your choice: ")) - 1
+            if allow_done:
+                print("Type 'done' to finish your selection.")
+
+            user_input = input("Enter the number of your choice: ").strip().lower()
+
+            # Check for 'done' input
+            if allow_done and user_input == "done":
+                return None  # Signal that the user is done selecting
+
+            # Process numerical input
+            choice = int(user_input) - 1
             if 0 <= choice < len(options):
                 return options[choice]
             else:
                 print("Invalid choice. Please try again.")
         except ValueError:
-            print("Please enter a valid number.")
+            print("Please enter a valid number or type 'done' if applicable.")
 
-def generate_plot():
+def generate_plot_with_chapters_and_subplots():
     genres = load_data("data/genres.txt")
     names = load_data("data/names.txt")
     events = load_data("data/events.txt")
+    subplots = load_data("data/subplots.txt")
 
     genre = get_user_choice(genres, "Choose a genre:")
 
@@ -37,15 +48,13 @@ def generate_plot():
 
     while True:
         try:
-            num_events = int(input("How many events should happen in the story? "))
-            if num_events > 0:
+            num_chapters = int(input("How many chapters should the story have? "))
+            if num_chapters > 0:
                 break
             else:
                 print("Please enter a positive number.")
         except ValueError:
             print("Please enter a valid number.")
-
-    story_events = [random.choice(events) for _ in range(num_events)]
 
     story = f"""
     Genre: {genre}
@@ -54,10 +63,20 @@ def generate_plot():
     Antagonist: {antagonist}
 
     Story:
-    {protagonist} is struggling against {antagonist}. Here's what happens:
     """
-    for i, event in enumerate(story_events, start=1):
-        story += f"\n    {i}. {event}"
+
+    for chapter in range(1, num_chapters + 1):
+        story += f"\nChapter {chapter}:\n"
+        story += f"{protagonist} faces a new challenge:\n"
+
+        while True:
+            subplot = get_user_choice(subplots, "Select a subplot (or type 'done' to finish):", allow_done=True)
+            if subplot is None:  # User typed 'done'
+                break
+            story += f"    - Subplot: {subplot}\n"
+
+        event = random.choice(events)
+        story += f"    - Main event: {event}\n"
 
     return story
 
@@ -82,8 +101,8 @@ def save_to_pdf(content, file_name="generated_story.pdf"):
     print(f"Story saved as PDF: {file_name}")
 
 def main():
-    print("Welcome to the Interactive Story Generator!")
-    story = generate_plot()
+    print("Welcome to the Interactive Story Generator with Chapters and Subplots!")
+    story = generate_plot_with_chapters_and_subplots()
     print("\nGenerated Story:")
     print(story)
 
