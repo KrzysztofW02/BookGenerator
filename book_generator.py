@@ -9,13 +9,20 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 def load_data(file_path):
-    with open(file_path, 'r') as file:
-        return [line.strip() for line in file]
+    try:
+        with open(file_path, 'r') as file:
+            return [line.strip() for line in file]
+    except FileNotFoundError:
+        QMessageBox.critical(None, "Error", f"File not found: {file_path}")
+        return []
+    except Exception as e:
+        QMessageBox.critical(None, "Error", f"An error occurred: {e}")
+        return []
 
-class StoryGeneratorApp(QWidget):
+class BookGeneratorApp(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Story Generator")
+        self.setWindowTitle("Book Generator")
         self.setGeometry(100, 100, 800, 600)
         
         self.genres = load_data("data/genres.txt")
@@ -106,6 +113,21 @@ class StoryGeneratorApp(QWidget):
         protagonist = self.name_input.text() or random.choice(self.names)
         antagonist = random.choice(self.names)
         num_chapters = self.chapters_spin.value()
+        if not genre:
+            QMessageBox.warning(self, "Validation Error", "Please choose a genre.")
+            return
+        if not protagonist.strip():
+            QMessageBox.warning(self, "Validation Error", "Please enter the protagonist's name or generate one.")
+            return
+        if not self.selected_subplots:
+            QMessageBox.warning(self, "Validation Error", "Please select at least one subplot.")
+            return
+        if num_chapters <= 0:
+            QMessageBox.warning(self, "Validation Error", "The number of chapters must be greater than zero.")
+            return
+
+        protagonist = protagonist or random.choice(self.names)
+        antagonist = random.choice(self.names)
 
         self.story = f"Genre: {genre}\n\nProtagonist: {protagonist}\nAntagonist: {antagonist}\n\nStory:\n"
         for chapter in range(1, num_chapters + 1):
@@ -172,6 +194,6 @@ if __name__ == "__main__":
     """
     
     app.setStyleSheet(stylesheet + custom_button_style)
-    window = StoryGeneratorApp()
+    window = BookGeneratorApp()
     window.show()
     sys.exit(app.exec_())
