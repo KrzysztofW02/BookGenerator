@@ -24,17 +24,17 @@ class BookGeneratorApp(QWidget):
         super().__init__()
         self.setWindowTitle("Book Generator")
         self.setGeometry(100, 100, 800, 600)
-        
+
         self.genres = load_data("data/genres.txt")
         self.names = load_data("data/names.txt")
         self.events = load_data("data/events.txt")
         self.subplots = load_data("data/subplots.txt")
-        
+
         self.story = ""
         self.selected_subplots = []
 
         self.init_ui()
-    
+
     def init_ui(self):
         layout = QVBoxLayout()
 
@@ -73,10 +73,14 @@ class BookGeneratorApp(QWidget):
         layout.addLayout(subplot_layout)
 
         self.selected_subplots_label = QLabel("Selected Subplots:")
-        self.selected_subplots_text = QTextEdit()
-        self.selected_subplots_text.setReadOnly(True)
+        self.selected_subplots_text = QListWidget()
+        self.remove_subplot_button = QPushButton("Remove Subplot")
+        self.remove_subplot_button.clicked.connect(self.remove_selected_subplot)
+        selected_layout = QHBoxLayout()
+        selected_layout.addWidget(self.selected_subplots_text)
+        selected_layout.addWidget(self.remove_subplot_button)
         layout.addWidget(self.selected_subplots_label)
-        layout.addWidget(self.selected_subplots_text)
+        layout.addLayout(selected_layout)
 
         self.generate_button = QPushButton("Generate Story")
         self.generate_button.clicked.connect(self.generate_story)
@@ -104,30 +108,32 @@ class BookGeneratorApp(QWidget):
         selected_item = self.subplots_list.currentItem()
         if selected_item:
             subplot = selected_item.text()
-            if subplot not in self.selected_subplots:
+            if subplot and subplot not in self.selected_subplots:
                 self.selected_subplots.append(subplot)
-                self.selected_subplots_text.append(subplot)
+                self.selected_subplots_text.addItem(subplot)
+
+    def remove_selected_subplot(self):
+        selected_item = self.selected_subplots_text.currentItem()
+        if selected_item:
+            subplot = selected_item.text()
+            self.selected_subplots.remove(subplot)
+            self.selected_subplots_text.takeItem(self.selected_subplots_text.row(selected_item))
 
     def generate_story(self):
         genre = self.genre_combo.currentText()
-        protagonist = self.name_input.text() or random.choice(self.names)
-        antagonist = random.choice(self.names)
-        num_chapters = self.chapters_spin.value()
+        protagonist = self.name_input.text().strip()
         if not genre:
             QMessageBox.warning(self, "Validation Error", "Please choose a genre.")
             return
-        if not protagonist.strip():
+        if not protagonist:
             QMessageBox.warning(self, "Validation Error", "Please enter the protagonist's name or generate one.")
             return
         if not self.selected_subplots:
             QMessageBox.warning(self, "Validation Error", "Please select at least one subplot.")
             return
-        if num_chapters <= 0:
-            QMessageBox.warning(self, "Validation Error", "The number of chapters must be greater than zero.")
-            return
 
-        protagonist = protagonist or random.choice(self.names)
         antagonist = random.choice(self.names)
+        num_chapters = self.chapters_spin.value()
 
         self.story = f"Genre: {genre}\n\nProtagonist: {protagonist}\nAntagonist: {antagonist}\n\nStory:\n"
         for chapter in range(1, num_chapters + 1):
@@ -170,6 +176,7 @@ class BookGeneratorApp(QWidget):
             pdf.save()
             QMessageBox.information(self, "Success", f"Story saved as {file_name}")
 
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     stylesheet = qtvsc.load_stylesheet(qtvsc.Theme.DARK_VS)
@@ -192,7 +199,6 @@ if __name__ == "__main__":
         border: 1px solid #777; 
     }
     """
-    
     app.setStyleSheet(stylesheet + custom_button_style)
     window = BookGeneratorApp()
     window.show()
