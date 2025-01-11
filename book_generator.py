@@ -45,14 +45,24 @@ class BookGeneratorApp(QWidget):
         layout.addWidget(self.genre_combo)
 
         self.name_label = QLabel("Protagonist's Name:")
-        self.name_input = QLineEdit()
+        self.protagonist_input = QLineEdit()
         self.random_name_button = QPushButton("Random Name")
-        self.random_name_button.clicked.connect(self.set_random_name)
+        self.random_name_button.clicked.connect(self.set_random_name_protagonist)
         name_layout = QHBoxLayout()
-        name_layout.addWidget(self.name_input)
+        name_layout.addWidget(self.protagonist_input)
         name_layout.addWidget(self.random_name_button)
         layout.addWidget(self.name_label)
         layout.addLayout(name_layout)
+
+        self.antagonist_label = QLabel("Antagonist's Name:")
+        self.antagonist_input = QLineEdit()
+        self.random_antagonist_button = QPushButton("Random Name")
+        self.random_antagonist_button.clicked.connect(self.set_random_name_antagonist)
+        antagonist_layout = QHBoxLayout()
+        antagonist_layout.addWidget(self.antagonist_input)
+        antagonist_layout.addWidget(self.random_antagonist_button)
+        layout.addWidget(self.antagonist_label)
+        layout.addLayout(antagonist_layout)
 
         self.chapters_label = QLabel("Number of Chapters:")
         self.chapters_spin = QSpinBox()
@@ -101,8 +111,11 @@ class BookGeneratorApp(QWidget):
 
         self.setLayout(layout)
 
-    def set_random_name(self):
-        self.name_input.setText(random.choice(self.names))
+    def set_random_name_protagonist(self):
+        self.protagonist_input.setText(random.choice(self.names))
+
+    def set_random_name_antagonist(self):
+        self.antagonist_input.setText(random.choice(self.names))
 
     def add_subplot(self):
         selected_item = self.subplots_list.currentItem()
@@ -121,7 +134,7 @@ class BookGeneratorApp(QWidget):
 
     def generate_story(self):
         genre = self.genre_combo.currentText()
-        protagonist = self.name_input.text().strip()
+        protagonist = self.protagonist_input.text().strip()
         if not genre:
             QMessageBox.warning(self, "Validation Error", "Please choose a genre.")
             return
