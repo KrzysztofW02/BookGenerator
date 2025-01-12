@@ -19,11 +19,18 @@ def load_data(file_path):
         QMessageBox.critical(None, "Error", f"An error occurred: {e}")
         return []
 
+def save_data(file_path, data):
+    try:
+        with open(file_path, 'w') as file:
+            file.write('\n'.join(data))
+    except Exception as e:
+        QMessageBox.critical(None, "Error", f"An error occurred while saving: {e}")
+
 class BookGeneratorApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Book Generator")
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 1200, 1200)
 
         self.genres = load_data("data/genres.txt")
         self.names = load_data("data/names.txt")
@@ -45,19 +52,19 @@ class BookGeneratorApp(QWidget):
         layout.addWidget(self.genre_combo)
 
         self.name_label = QLabel("Protagonist's Name:")
-        self.protagonist_input = QLineEdit()
+        self.name_input = QLineEdit()
         self.random_name_button = QPushButton("Random Name")
-        self.random_name_button.clicked.connect(self.set_random_name_protagonist)
+        self.random_name_button.clicked.connect(self.set_random_name)
         name_layout = QHBoxLayout()
-        name_layout.addWidget(self.protagonist_input)
+        name_layout.addWidget(self.name_input)
         name_layout.addWidget(self.random_name_button)
         layout.addWidget(self.name_label)
         layout.addLayout(name_layout)
 
         self.antagonist_label = QLabel("Antagonist's Name:")
         self.antagonist_input = QLineEdit()
-        self.random_antagonist_button = QPushButton("Random Name")
-        self.random_antagonist_button.clicked.connect(self.set_random_name_antagonist)
+        self.random_antagonist_button = QPushButton("Random Antagonist")
+        self.random_antagonist_button.clicked.connect(self.set_random_antagonist)
         antagonist_layout = QHBoxLayout()
         antagonist_layout.addWidget(self.antagonist_input)
         antagonist_layout.addWidget(self.random_antagonist_button)
@@ -76,9 +83,14 @@ class BookGeneratorApp(QWidget):
         self.subplots_list.addItems(self.subplots)
         self.add_subplot_button = QPushButton("Add Subplot")
         self.add_subplot_button.clicked.connect(self.add_subplot)
+
+        self.delete_subplot_button = QPushButton("Delete Subplot")
+        self.delete_subplot_button.clicked.connect(self.delete_subplot)
+
         subplot_layout = QHBoxLayout()
         subplot_layout.addWidget(self.subplots_list)
         subplot_layout.addWidget(self.add_subplot_button)
+        subplot_layout.addWidget(self.delete_subplot_button)
         layout.addWidget(self.subplots_label)
         layout.addLayout(subplot_layout)
 
@@ -91,6 +103,19 @@ class BookGeneratorApp(QWidget):
         selected_layout.addWidget(self.remove_subplot_button)
         layout.addWidget(self.selected_subplots_label)
         layout.addLayout(selected_layout)
+
+        self.customization_label = QLabel("Customize Story Elements:")
+        layout.addWidget(self.customization_label)
+
+        self.add_subplot_label = QLabel("Add New Subplot:")
+        self.add_subplot_input = QLineEdit()
+        self.add_subplot_button_custom = QPushButton("Add New Subplot")
+        self.add_subplot_button_custom.clicked.connect(self.add_subplot_custom)
+        subplot_customization_layout = QHBoxLayout()
+        subplot_customization_layout.addWidget(self.add_subplot_input)
+        subplot_customization_layout.addWidget(self.add_subplot_button_custom)
+        layout.addWidget(self.add_subplot_label)
+        layout.addLayout(subplot_customization_layout)
 
         self.generate_button = QPushButton("Generate Story")
         self.generate_button.clicked.connect(self.generate_story)
@@ -111,10 +136,10 @@ class BookGeneratorApp(QWidget):
 
         self.setLayout(layout)
 
-    def set_random_name_protagonist(self):
-        self.protagonist_input.setText(random.choice(self.names))
+    def set_random_name(self):
+        self.name_input.setText(random.choice(self.names))
 
-    def set_random_name_antagonist(self):
+    def set_random_antagonist(self):
         self.antagonist_input.setText(random.choice(self.names))
 
     def add_subplot(self):
@@ -132,20 +157,37 @@ class BookGeneratorApp(QWidget):
             self.selected_subplots.remove(subplot)
             self.selected_subplots_text.takeItem(self.selected_subplots_text.row(selected_item))
 
+    def add_subplot_custom(self):
+        new_subplot = self.add_subplot_input.text().strip()
+        if new_subplot and new_subplot not in self.subplots:
+            self.subplots.append(new_subplot)
+            save_data("data/subplots.txt", self.subplots)
+            self.subplots_list.addItem(new_subplot)
+            QMessageBox.information(self, "Success", f"Subplot '{new_subplot}' added!")
+            self.add_subplot_input.clear()
+    
+    def delete_subplot(self):
+        selected_item = self.subplots_list.currentItem()
+        if selected_item:
+            subplot = selected_item.text()
+            if subplot in self.subplots:
+                self.subplots.remove(subplot)
+                save_data("data/subplots.txt", self.subplots)
+                self.subplots_list.takeItem(self.subplots_list.row(selected_item))
+                QMessageBox.information(self, "Success", f"Subplot '{subplot}' deleted!")
+
+
     def generate_story(self):
         genre = self.genre_combo.currentText()
-        protagonist = self.protagonist_input.text().strip()
+        protagonist = self.name_input.text().strip()
+        antagonist = self.antagonist_input.text().strip()
         if not genre:
             QMessageBox.warning(self, "Validation Error", "Please choose a genre.")
-            return
-        if not protagonist:
-            QMessageBox.warning(self, "Validation Error", "Please enter the protagonist's name or generate one.")
             return
         if not self.selected_subplots:
             QMessageBox.warning(self, "Validation Error", "Please select at least one subplot.")
             return
 
-        antagonist = random.choice(self.names)
         num_chapters = self.chapters_spin.value()
 
         self.story = f"Genre: {genre}\n\nProtagonist: {protagonist}\nAntagonist: {antagonist}\n\nStory:\n"
