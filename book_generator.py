@@ -30,7 +30,7 @@ class BookGeneratorApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Book Generator")
-        self.setGeometry(100, 100, 1200, 1200)
+        self.setGeometry(100, 100, 1000, 900)
 
         self.genres = load_data("data/genres.txt")
         self.names = load_data("data/names.txt")
@@ -125,6 +125,9 @@ class BookGeneratorApp(QWidget):
         self.story_output.setReadOnly(True)
         layout.addWidget(self.story_output)
 
+        self.word_count_label = QLabel("Word Count: 0")
+        layout.addWidget(self.word_count_label)
+
         self.save_txt_button = QPushButton("Save as TXT")
         self.save_pdf_button = QPushButton("Save as PDF")
         self.save_txt_button.clicked.connect(self.save_to_txt)
@@ -176,6 +179,12 @@ class BookGeneratorApp(QWidget):
                 self.subplots_list.takeItem(self.subplots_list.row(selected_item))
                 QMessageBox.information(self, "Success", f"Subplot '{subplot}' deleted!")
 
+    def count_words(self):
+        return len(self.story.split())
+
+    def update_word_count(self):
+        word_count = self.count_words()
+        self.word_count_label.setText(f"Word Count: {word_count}")
 
     def generate_story(self):
         genre = self.genre_combo.currentText()
@@ -200,6 +209,7 @@ class BookGeneratorApp(QWidget):
             self.story += f"    - Main event: {event}\n"
 
         self.story_output.setText(self.story)
+        self.update_word_count()
 
     def save_to_txt(self):
         if not self.story:
