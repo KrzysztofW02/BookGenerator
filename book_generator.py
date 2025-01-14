@@ -190,12 +190,31 @@ class BookGeneratorApp(QWidget):
         genre = self.genre_combo.currentText()
         protagonist = self.name_input.text().strip()
         antagonist = self.antagonist_input.text().strip()
-        if not genre:
-            QMessageBox.warning(self, "Validation Error", "Please choose a genre.")
+        
+        if not protagonist or not antagonist:
+            QMessageBox.warning(self, "Validation Error", "Protagonist and Antagonist names cannot be empty.")
             return
-        if not self.selected_subplots:
-            QMessageBox.warning(self, "Validation Error", "Please select at least one subplot.")
-            return
+
+        num_chapters = self.chapters_spin.value()
+        self.story = f"Genre: {genre}\n\nProtagonist: {protagonist}\nAntagonist: {antagonist}\n\nStory:\n"
+
+        self.story += "Introduction:\n"
+        self.story += f"{protagonist} begins their journey in a world defined by {genre}.\n"
+
+        for chapter in range(1, num_chapters + 1):
+            self.story += f"\nChapter {chapter}:\n"
+            self.story += f"{protagonist} encounters new challenges and confronts {antagonist}.\n"
+            subplot = random.choice(self.selected_subplots)
+            event = random.choice(self.events)
+            self.story += f"{subplot}\n"
+            self.story += f"{event}\n"
+
+        self.story += "\nConclusion:\n"
+        self.story += f"In the end, {protagonist} manages to confront their fears and achieve their goal.\n"
+
+        self.story_output.setText(self.story)
+        self.update_word_count()
+
 
         num_chapters = self.chapters_spin.value()
 
@@ -204,9 +223,9 @@ class BookGeneratorApp(QWidget):
             self.story += f"\nChapter {chapter}:\n"
             self.story += f"{protagonist} faces a new challenge:\n"
             for subplot in self.selected_subplots:
-                self.story += f"    - Subplot: {subplot}\n"
+                self.story += f"{subplot}\n"
             event = random.choice(self.events)
-            self.story += f"    - Main event: {event}\n"
+            self.story += f"{event}\n"
 
         self.story_output.setText(self.story)
         self.update_word_count()
