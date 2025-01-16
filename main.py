@@ -33,6 +33,12 @@ class BookGeneratorApp(QWidget):
         self.delete_subplot_button.clicked.connect(self.delete_subplot)
         self.generate_button.clicked.connect(self.generate_story)
         self.remove_subplot_button.clicked.connect(self.remove_selected_subplot)
+        self.add_subplot_button_custom.clicked.connect(self.add_subplot_custom)
+        try:
+            self.delete_subplot_button.clicked.disconnect()
+        except TypeError:
+            pass 
+        self.delete_subplot_button.clicked.connect(self.delete_subplot)
 
     def set_random_name(self):
         self.name_input.setText(random.choice(self.names))
@@ -64,6 +70,15 @@ class BookGeneratorApp(QWidget):
             subplot = selected_item.text()
             self.selected_subplots.remove(subplot)
             self.selected_subplots_text.takeItem(self.selected_subplots_text.row(selected_item))
+
+    def add_subplot_custom(self):
+        new_subplot = self.add_subplot_input.text().strip()
+        if new_subplot and new_subplot not in self.subplots:
+            self.subplots.append(new_subplot)
+            save_data("data/subplots.txt", self.subplots)
+            self.subplots_list.addItem(new_subplot)
+            QMessageBox.information(self, "Success", f"Subplot '{new_subplot}' added!")
+            self.add_subplot_input.clear()
 
     def count_words(self):
         return len(self.story.split())
