@@ -3,3 +3,4 @@ reportlab
 PyQt5
 qtvscodestyle
 pip-tools
+groq
