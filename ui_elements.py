@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QComboBox, QLineEdit,
-    QTextEdit, QSpinBox, QListWidget, QWidget
+    QTextEdit, QSpinBox, QListWidget, QCheckBox
 )
 
 def setup_ui(widget):
@@ -78,6 +78,10 @@ def setup_ui(widget):
     subplot_customization_layout.addWidget(widget.add_subplot_button_custom)
     layout.addWidget(widget.add_subplot_label)
     layout.addLayout(subplot_customization_layout)
+
+    widget.use_ai_checkbox = QCheckBox("Use AI for story generation")
+    widget.use_ai_checkbox.setChecked(True) 
+    layout.addWidget(widget.use_ai_checkbox)
 
     widget.generate_button = QPushButton("Generate Story")
     widget.generate_button.clicked.connect(widget.generate_story)

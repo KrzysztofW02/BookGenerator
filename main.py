@@ -7,6 +7,7 @@ from reportlab.lib.pagesizes import letter
 from ui_elements import setup_ui
 from story_generator import generate_story
 from data_manager import load_data, save_data
+from AI_groq import generate_story_with_groq
 
 class BookGeneratorApp(QWidget):
     def __init__(self):
@@ -91,20 +92,34 @@ class BookGeneratorApp(QWidget):
         genre = self.genre_combo.currentText()
         protagonist = self.name_input.text().strip()
         antagonist = self.antagonist_input.text().strip()
+        num_chapters = self.chapters_spin.value()
 
         try:
-            self.story = generate_story(
-                genre,
-                protagonist,
-                antagonist,
-                self.chapters_spin.value(),
-                self.selected_subplots,
-                self.events
-            )
+            if self.use_ai_checkbox.isChecked():
+                self.story = generate_story_with_groq(
+                    genre,
+                    protagonist,
+                    antagonist,
+                    num_chapters,
+                    self.selected_subplots,
+                    self.events
+                )
+            else:
+                self.story = generate_story(
+                    genre,
+                    protagonist,
+                    antagonist,
+                    num_chapters,
+                    self.selected_subplots,
+                    self.events
+                )
+
             self.story_output.setText(self.story)
             self.update_word_count()
         except ValueError as e:
             QMessageBox.warning(self, "Validation Error", str(e))
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"An error occurred: {e}")
 
     def save_to_txt(self):
         if not self.story:
